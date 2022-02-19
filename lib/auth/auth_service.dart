@@ -7,6 +7,7 @@ abstract class AuthService {
   Future<UserCredential?> signInWithFacebook();
   Future<UserCredential?> signInWithApple();
   Future<void> sendEmailVerification();
+  Future<void> sendResetPassword(String email);
 
   Future logout();
   User? get currentUser;

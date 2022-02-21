@@ -8,6 +8,8 @@ abstract class AuthService {
   Future<UserCredential?> signInWithApple();
   Future<void> sendEmailVerification();
   Future<void> sendResetPassword(String email);
+  Future<void> changeMail(String mail);
+  Future<void> changePassword(String password);
 
   Future logout();
   User? get currentUser;

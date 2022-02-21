@@ -176,4 +176,14 @@ class FirebaseAuthService extends AuthService {
   Future<void> sendResetPassword(String email) {
     return _firebaseAuth.sendPasswordResetEmail(email: email);
   }
+
+  @override
+  Future<void> changePassword(String password) {
+    return _firebaseAuth.currentUser!.updatePassword(password);
+  }
+
+  @override
+  Future<void> changeMail(String mail) {
+    return _firebaseAuth.currentUser!.updateEmail(mail);
+  }
 }

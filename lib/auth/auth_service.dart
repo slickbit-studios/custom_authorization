@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 abstract class AuthService {
   Future<UserCredential> signup(String email, String password);
+  Future<UserCredential> signInAnonymously();
   Future<UserCredential> signInWithCredentials(String email, String password);
   Future<UserCredential?> signInWithGoogle();
   Future<UserCredential?> signInWithFacebook();
@@ -13,5 +14,6 @@ abstract class AuthService {
 
   Future logout();
   User? get currentUser;
+  bool get signedIn;
   bool get isVerified;
 }

@@ -36,7 +36,7 @@ class AuthException {
         return AuthException(AuthExceptionType.INVALID_CREDENTIAL);
       } else {
         Logger.instance.error(
-          module: 'AuthService',
+          module: AuthException,
           message: 'Unhandled code on signin with $method: ${err.code}',
         );
         return AuthException(AuthExceptionType.UNCLASSIFIED);

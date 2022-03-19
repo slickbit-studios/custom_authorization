@@ -30,8 +30,21 @@ class FirebaseAuthService extends AuthService {
     UserCredential? credentials;
     try {
       credentials = await _firebaseAuth.createUserWithEmailAndPassword(
-          email: email, password: password);
+        email: email,
+        password: password,
+      );
       credentials.user!.sendEmailVerification();
+    } catch (e) {
+      throw AuthException.from(e);
+    }
+    return credentials;
+  }
+
+  @override
+  Future<UserCredential> signInAnonymously() async {
+    UserCredential? credentials;
+    try {
+      credentials = await _firebaseAuth.signInAnonymously();
     } catch (e) {
       throw AuthException.from(e);
     }
@@ -72,7 +85,7 @@ class FirebaseAuthService extends AuthService {
       throw AuthException.from(e, method: 'Google');
     } catch (e) {
       Logger.instance.error(
-        module: 'AuthService',
+        module: runtimeType,
         message: 'Unknown exception on sign in with google: $e',
       );
       throw AuthException(AuthExceptionType.UNCLASSIFIED);
@@ -186,4 +199,7 @@ class FirebaseAuthService extends AuthService {
   Future<void> changeMail(String mail) {
     return _firebaseAuth.currentUser!.updateEmail(mail);
   }
+
+  @override
+  bool get signedIn => currentUser != null;
 }

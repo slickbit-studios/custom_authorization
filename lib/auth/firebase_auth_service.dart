@@ -11,6 +11,8 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'auth_exception.dart';
 import 'auth_service.dart';
 
+export 'package:firebase_auth/firebase_auth.dart';
+
 const TAG_PROVIDER = 'providerId';
 const PROVIDER_FACEBOOK = 'facebook.com';
 const PROVIDER_APPLE = 'apple.com';

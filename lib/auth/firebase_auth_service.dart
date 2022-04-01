@@ -204,4 +204,24 @@ class FirebaseAuthService extends AuthService {
 
   @override
   bool get signedIn => currentUser != null;
+
+  @override
+  Future<String?> getImageUrl({int size = 128}) async {
+    String? url = currentUser?.photoURL;
+
+    if (url == null) {
+      return null;
+    }
+
+    // set size
+    url += '?width=$size';
+
+    // facebook requires access token in url
+    var facebookToken = await FacebookAuth.instance.accessToken;
+    if (facebookToken != null) {
+      url += "&access_token=${facebookToken.token}";
+    }
+
+    return url;
+  }
 }

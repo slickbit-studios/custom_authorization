@@ -11,6 +11,8 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'auth_exception.dart';
 import 'auth_service.dart';
 
+export 'package:firebase_auth/firebase_auth.dart';
+
 const TAG_PROVIDER = 'providerId';
 const PROVIDER_FACEBOOK = 'facebook.com';
 const PROVIDER_APPLE = 'apple.com';
@@ -202,4 +204,24 @@ class FirebaseAuthService extends AuthService {
 
   @override
   bool get signedIn => currentUser != null;
+
+  @override
+  Future<String?> getImageUrl({int size = 128}) async {
+    String? url = currentUser?.photoURL;
+
+    if (url == null) {
+      return null;
+    }
+
+    // set size
+    url += '?width=$size';
+
+    // facebook requires access token in url
+    var facebookToken = await FacebookAuth.instance.accessToken;
+    if (facebookToken != null) {
+      url += "&access_token=${facebookToken.token}";
+    }
+
+    return url;
+  }
 }

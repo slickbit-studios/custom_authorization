@@ -11,6 +11,7 @@ abstract class AuthService {
   Future<void> sendResetPassword(String email);
   Future<void> changeMail(String mail);
   Future<void> changePassword(String password);
+  Future<String?> getImageUrl({int size});
 
   Future logout();
   User? get currentUser;

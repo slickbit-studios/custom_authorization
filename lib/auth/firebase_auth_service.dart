@@ -71,9 +71,11 @@ class FirebaseAuthService extends AuthService {
   }
 
   @override
-  Future<UserCredential?> signInWithGoogle() async {
+  Future<UserCredential?> signInWithGoogle({String? clientId}) async {
     try {
-      final GoogleSignInAccount? user = await GoogleSignIn().signIn();
+      final GoogleSignInAccount? user = await GoogleSignIn(
+        clientId: clientId,
+      ).signIn();
 
       if (user != null) {
         final GoogleSignInAuthentication googleAuth = await user.authentication;

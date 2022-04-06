@@ -4,7 +4,7 @@ abstract class AuthService {
   Future<UserCredential> signup(String email, String password);
   Future<UserCredential> signInAnonymously();
   Future<UserCredential> signInWithCredentials(String email, String password);
-  Future<UserCredential?> signInWithGoogle();
+  Future<UserCredential?> signInWithGoogle({String? clientId});
   Future<UserCredential?> signInWithFacebook();
   Future<UserCredential?> signInWithApple();
   Future<void> sendEmailVerification();

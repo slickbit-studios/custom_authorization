@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:custom_services/util/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -100,20 +101,32 @@ class FirebaseAuthService extends AuthService {
 
   @override
   Future<UserCredential?> signInWithFacebook() async {
-    final LoginResult loginResult = await FacebookAuth.instance.login();
-
-    if (loginResult.accessToken != null) {
-      final OAuthCredential oAuthCredential =
-          FacebookAuthProvider.credential(loginResult.accessToken!.token);
+    if (kIsWeb) {
+      var provider = FacebookAuthProvider();
+      provider.addScope('email');
+      provider.setCustomParameters({'display': 'popup'});
 
       try {
-        return await _firebaseAuth.signInWithCredential(oAuthCredential);
+        return FirebaseAuth.instance.signInWithPopup(provider);
       } catch (e) {
         throw AuthException.from(e, method: 'Facebook');
       }
-    }
+    } else {
+      final LoginResult loginResult = await FacebookAuth.instance.login();
 
-    return Future.value(null);
+      if (loginResult.accessToken != null) {
+        final OAuthCredential oAuthCredential =
+            FacebookAuthProvider.credential(loginResult.accessToken!.token);
+
+        try {
+          return await _firebaseAuth.signInWithCredential(oAuthCredential);
+        } catch (e) {
+          throw AuthException.from(e, method: 'Facebook');
+        }
+      }
+
+      return Future.value(null);
+    }
   }
 
   @override

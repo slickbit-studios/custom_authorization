@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:custom_services/util/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -88,6 +89,8 @@ class FirebaseAuthService extends AuthService {
       }
     } on FirebaseAuthException catch (e) {
       throw AuthException.from(e, method: 'Google');
+    } on PlatformException catch (_) {
+      throw AuthException(AuthExceptionType.PLATFORM_ERROR);
     } catch (e) {
       Logger.instance.error(
         module: runtimeType,

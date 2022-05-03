@@ -16,12 +16,12 @@ dependencies:
   custom_services:
     path: ../custom_services
 
-  firebase_core: ^1.14.0
-  google_sign_in: ^5.2.4
-  flutter_facebook_auth: ^4.1.2
-  crypto: ^3.0.1
+  firebase_core: ^1.15.0
+  google_sign_in: ^5.3.0
+  flutter_facebook_auth: ^4.3.0
+  crypto: ^3.0.2
   sign_in_with_apple: ^3.3.0
-  firebase_auth: ^3.3.12
+  firebase_auth: ^3.3.16
 
 dev_dependencies:
   flutter_test:

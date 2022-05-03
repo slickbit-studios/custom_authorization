@@ -6,7 +6,8 @@ enum AuthExceptionType {
   UNCLASSIFIED,
   WEAK_PASSWORD,
   EMAIL_IN_USE,
-  EMAIL_OR_PASSWORD_WRONG,
+  USER_NOT_EXISTS,
+  PASSWORD_WRONG,
   ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL,
   PLATFORM_ERROR,
   NOT_COMPLETED,
@@ -25,8 +26,10 @@ class AuthException {
         throw AuthException(AuthExceptionType.WEAK_PASSWORD);
       } else if (err.code == 'email-already-in-use') {
         throw AuthException(AuthExceptionType.EMAIL_IN_USE);
-      } else if (err.code == 'user-not-found' || err.code == 'wrong-password') {
-        throw AuthException(AuthExceptionType.EMAIL_OR_PASSWORD_WRONG);
+      } else if (err.code == 'user-not-found' ) {
+        throw AuthException(AuthExceptionType.USER_NOT_EXISTS);
+      } else if ( err.code == 'wrong-password') {
+        throw AuthException(AuthExceptionType.PASSWORD_WRONG);
       } else if (err.code == 'too-many-requests') {
         throw AuthException(AuthExceptionType.TOO_MANY_REQUESTS);
       } else if (err.code == 'account-exists-with-different-credential') {

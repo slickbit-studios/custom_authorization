@@ -20,13 +20,13 @@ dependencies:
   google_sign_in: ^5.3.1
   flutter_facebook_auth: ^4.3.4
   crypto: ^3.0.2
-  sign_in_with_apple: ^3.3.0
+  sign_in_with_apple: ^4.0.0
   firebase_auth: ^3.3.18
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^1.0.4
+  flutter_lints: ^2.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

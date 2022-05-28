@@ -23,21 +23,23 @@ class AuthException {
   static AuthException from(Object err, {String method = ''}) {
     if (err is FirebaseAuthException) {
       if (err.code == 'weak-password') {
-        throw AuthException(AuthExceptionType.WEAK_PASSWORD);
+        return AuthException(AuthExceptionType.WEAK_PASSWORD);
       } else if (err.code == 'email-already-in-use') {
-        throw AuthException(AuthExceptionType.EMAIL_IN_USE);
-      } else if (err.code == 'user-not-found' ) {
-        throw AuthException(AuthExceptionType.USER_NOT_EXISTS);
-      } else if ( err.code == 'wrong-password') {
-        throw AuthException(AuthExceptionType.PASSWORD_WRONG);
+        return AuthException(AuthExceptionType.EMAIL_IN_USE);
+      } else if (err.code == 'user-not-found') {
+        return AuthException(AuthExceptionType.USER_NOT_EXISTS);
+      } else if (err.code == 'wrong-password') {
+        return AuthException(AuthExceptionType.PASSWORD_WRONG);
       } else if (err.code == 'too-many-requests') {
-        throw AuthException(AuthExceptionType.TOO_MANY_REQUESTS);
+        return AuthException(AuthExceptionType.TOO_MANY_REQUESTS);
       } else if (err.code == 'account-exists-with-different-credential') {
         return AuthException(
           AuthExceptionType.ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL,
         );
       } else if (err.code == 'invalid-credential') {
         return AuthException(AuthExceptionType.INVALID_CREDENTIAL);
+      } else if (err.code == 'popup-closed-by-user') {
+        return AuthException(AuthExceptionType.NOT_COMPLETED);
       } else {
         Logger.instance.error(
           module: AuthException,
@@ -46,7 +48,7 @@ class AuthException {
         return AuthException(AuthExceptionType.UNCLASSIFIED);
       }
     } else if (err is SignInWithAppleAuthorizationException) {
-      throw AuthException(AuthExceptionType.NOT_COMPLETED);
+      return AuthException(AuthExceptionType.NOT_COMPLETED);
     } else {
       return AuthException(AuthExceptionType.UNCLASSIFIED);
     }

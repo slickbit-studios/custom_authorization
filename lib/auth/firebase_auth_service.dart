@@ -31,6 +31,8 @@ class FirebaseAuthService extends AuthService {
 
   @override
   Future<UserCredential> signup(String email, String password) async {
+    await removeUserIfAnonymous();
+
     UserCredential? credentials;
     try {
       credentials = await _firebaseAuth.createUserWithEmailAndPassword(
@@ -47,6 +49,7 @@ class FirebaseAuthService extends AuthService {
   @override
   Future<UserCredential> signInAnonymously() async {
     UserCredential? credentials;
+
     try {
       credentials = await _firebaseAuth.signInAnonymously();
     } catch (e) {
@@ -62,6 +65,8 @@ class FirebaseAuthService extends AuthService {
   ) async {
     UserCredential? credential;
     try {
+      await removeUserIfAnonymous();
+
       credential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -75,9 +80,10 @@ class FirebaseAuthService extends AuthService {
   @override
   Future<UserCredential?> signInWithGoogle({String? clientId}) async {
     try {
-      final GoogleSignInAccount? user = await GoogleSignIn(
-        clientId: clientId,
-      ).signIn();
+      await removeUserIfAnonymous();
+
+      final GoogleSignInAccount? user =
+          await GoogleSignIn(clientId: clientId).signIn();
 
       if (user != null) {
         final GoogleSignInAuthentication googleAuth = await user.authentication;
@@ -110,6 +116,7 @@ class FirebaseAuthService extends AuthService {
       provider.setCustomParameters({'display': 'popup'});
 
       try {
+        await removeUserIfAnonymous();
         return FirebaseAuth.instance.signInWithPopup(provider);
       } catch (e) {
         throw AuthException.from(e, method: 'Facebook');
@@ -118,10 +125,11 @@ class FirebaseAuthService extends AuthService {
       final LoginResult loginResult = await FacebookAuth.instance.login();
 
       if (loginResult.accessToken != null) {
-        final OAuthCredential oAuthCredential =
-            FacebookAuthProvider.credential(loginResult.accessToken!.token);
-
         try {
+          await removeUserIfAnonymous();
+
+          final OAuthCredential oAuthCredential =
+              FacebookAuthProvider.credential(loginResult.accessToken!.token);
           return await _firebaseAuth.signInWithCredential(oAuthCredential);
         } catch (e) {
           throw AuthException.from(e, method: 'Facebook');
@@ -140,6 +148,8 @@ class FirebaseAuthService extends AuthService {
     final nonce = _sha256ofString(rawNonce);
 
     try {
+      await removeUserIfAnonymous();
+
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
@@ -160,8 +170,11 @@ class FirebaseAuthService extends AuthService {
   }
 
   @override
-  Future logout() {
-    return _firebaseAuth.signOut();
+  Future<void> logout() async {
+    await removeUserIfAnonymous();
+    if (currentUser != null) {
+      await _firebaseAuth.signOut();
+    }
   }
 
   /// Generates a cryptographically secure random nonce, to be included in a
@@ -241,5 +254,12 @@ class FirebaseAuthService extends AuthService {
     }
 
     return url;
+  }
+
+  Future<void> removeUserIfAnonymous() async {
+    var user = _firebaseAuth.currentUser;
+    if (user?.isAnonymous ?? false) {
+      return await _firebaseAuth.currentUser?.delete();
+    }
   }
 }

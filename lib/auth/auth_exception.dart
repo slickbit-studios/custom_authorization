@@ -18,8 +18,9 @@ enum AuthExceptionType {
 
 class AuthException {
   final AuthExceptionType type;
+  final dynamic error;
 
-  AuthException(this.type);
+  AuthException(this.type, {this.error});
 
   static AuthException from(Object err, {String method = ''}) {
     if (err is FirebaseAuthException) {
@@ -49,7 +50,7 @@ class AuthException {
           message: 'Unhandled code on signin with $method: ${err.code}',
         );
 
-        return AuthException(AuthExceptionType.UNCLASSIFIED);
+        return AuthException(AuthExceptionType.UNCLASSIFIED, error: err);
       }
     } else if (err is SignInWithAppleAuthorizationException) {
       return AuthException(AuthExceptionType.NOT_COMPLETED);
@@ -59,7 +60,16 @@ class AuthException {
         message: 'Unexpected error on signin with $method: $err',
       );
 
-      return AuthException(AuthExceptionType.UNCLASSIFIED);
+      return AuthException(AuthExceptionType.UNCLASSIFIED, error: err);
     }
+  }
+
+  @override
+  String toString() {
+    String result = type.name;
+    if (error != null) {
+      result += ': $error';
+    }
+    return result;
   }
 }

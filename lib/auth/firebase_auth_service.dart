@@ -230,11 +230,7 @@ class FirebaseAuthService extends AuthService {
 
   @override
   Future<void> changeMail(String mail) {
-    try {
-      return _firebaseAuth.currentUser!.updateEmail(mail);
-    } catch (err) {
-      throw AuthException.from(err);
-    }
+    return _firebaseAuth.currentUser!.verifyBeforeUpdateEmail(mail);
   }
 
   @override

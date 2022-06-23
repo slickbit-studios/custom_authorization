@@ -12,7 +12,8 @@ enum AuthExceptionType {
   PLATFORM_ERROR,
   NOT_COMPLETED,
   TOO_MANY_REQUESTS,
-  INVALID_CREDENTIAL
+  INVALID_CREDENTIAL,
+  RECENT_LOGIN_REQUIRED
 }
 
 class AuthException {
@@ -40,16 +41,24 @@ class AuthException {
         return AuthException(AuthExceptionType.INVALID_CREDENTIAL);
       } else if (err.code == 'popup-closed-by-user') {
         return AuthException(AuthExceptionType.NOT_COMPLETED);
+      } else if (err.code == 'requires-recent-login') {
+        return AuthException(AuthExceptionType.RECENT_LOGIN_REQUIRED);
       } else {
         Logger.instance.error(
           module: AuthException,
           message: 'Unhandled code on signin with $method: ${err.code}',
         );
+
         return AuthException(AuthExceptionType.UNCLASSIFIED);
       }
     } else if (err is SignInWithAppleAuthorizationException) {
       return AuthException(AuthExceptionType.NOT_COMPLETED);
     } else {
+      Logger.instance.error(
+        module: AuthException,
+        message: 'Unexpected error on signin with $method: $err',
+      );
+
       return AuthException(AuthExceptionType.UNCLASSIFIED);
     }
   }

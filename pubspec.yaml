@@ -6,22 +6,24 @@ homepage: www.slickbit.de
 publish_to: 'none'
 
 environment:
-  sdk: ">=2.15.0 <3.0.0"
-  flutter: ">=2.10.1"
+  sdk: ">=2.18.2 <3.0.0"
+  flutter: ">=3.3.4"
 
 dependencies:
   flutter:
     sdk: flutter
 
   custom_services:
-    path: ../custom_services
+    git:
+      url: git@github.com:danihoo/custom_services.git
+      ref: master
 
-  firebase_core: ^1.22.0
-  google_sign_in: ^5.4.1
-  flutter_facebook_auth: ^4.4.1
+  firebase_core: ^1.24.0
+  google_sign_in: ^5.4.2
+  flutter_facebook_auth: ^4.4.1+1
   crypto: ^3.0.2
   sign_in_with_apple: ^4.1.0
-  firebase_auth: ^3.8.0
+  firebase_auth: ^3.11.2
 
 dev_dependencies:
   flutter_test:

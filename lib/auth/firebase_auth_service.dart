@@ -170,8 +170,21 @@ class FirebaseAuthService extends AuthService {
   }
 
   @override
-  Future<void> logout() async {
-    await removeUserIfAnonymous();
+  Future<void> logout({bool removeAnonymous = true}) async {
+    // try to rotate firebase cloud messaging token
+    try {} catch (err) {
+      Logger.instance.warning(
+        module: runtimeType,
+        message: 'Failed to rotate fcm key: $err',
+      );
+    }
+
+    // delete anonymous account in firebase
+    if (removeAnonymous) {
+      await removeUserIfAnonymous();
+    }
+
+    // sign out
     if (currentUser != null) {
       await _firebaseAuth.signOut();
     }

@@ -6,6 +6,7 @@ abstract class AuthData {
   String? get email;
   bool get emailVerified;
   Future<String> get token;
+  bool get anonymous;
 }
 
 abstract class AuthService {

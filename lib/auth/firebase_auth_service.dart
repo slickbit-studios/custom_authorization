@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
-import 'package:custom_services/util/logger.dart';
+import 'package:custom_services/services/crash_report/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -13,13 +13,29 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'auth_exception.dart';
 import 'auth_service.dart';
 
-export 'package:firebase_auth/firebase_auth.dart';
-
 const TAG_PROVIDER = 'providerId';
 const PROVIDER_FACEBOOK = 'facebook.com';
 const PROVIDER_APPLE = 'apple.com';
 const PROVIDER_GOOGLE = 'google.com';
 const SOCIAL_PROVIDERS = [PROVIDER_APPLE, PROVIDER_FACEBOOK, PROVIDER_GOOGLE];
+
+class FirebaseAuthData extends AuthData {
+  final User _firebaseUser;
+
+  const FirebaseAuthData._(this._firebaseUser);
+
+  @override
+  String? get email => _firebaseUser.email;
+
+  @override
+  bool get emailVerified => _firebaseUser.emailVerified;
+
+  @override
+  String? get name => _firebaseUser.displayName;
+
+  @override
+  String get uid => _firebaseUser.uid;
+}
 
 class FirebaseAuthService extends AuthService {
   final FirebaseAuth _firebaseAuth;
@@ -27,10 +43,12 @@ class FirebaseAuthService extends AuthService {
   FirebaseAuthService() : _firebaseAuth = FirebaseAuth.instance;
 
   @override
-  User? get currentUser => _firebaseAuth.currentUser;
+  AuthData? get currentUser => _firebaseAuth.currentUser == null
+      ? null
+      : FirebaseAuthData._(_firebaseAuth.currentUser!);
 
   @override
-  Future<UserCredential> signup(String email, String password) async {
+  Future<bool> signup(String email, String password) async {
     await removeUserIfAnonymous();
 
     UserCredential? credentials;
@@ -43,73 +61,71 @@ class FirebaseAuthService extends AuthService {
     } catch (e) {
       throw AuthException.from(e);
     }
-    return credentials;
+
+    return true;
   }
 
   @override
-  Future<UserCredential> signInAnonymously() async {
-    UserCredential? credentials;
-
+  Future<bool> signInAnonymously() async {
     try {
-      credentials = await _firebaseAuth.signInAnonymously();
+      await _firebaseAuth.signInAnonymously();
+      return true;
     } catch (e) {
       throw AuthException.from(e);
     }
-    return credentials;
   }
 
   @override
-  Future<UserCredential> signInWithCredentials(
-    String email,
-    String password,
-  ) async {
-    UserCredential? credential;
+  Future<bool> signInWithCredentials(String email, String password) async {
     try {
       await removeUserIfAnonymous();
 
-      credential = await _firebaseAuth.signInWithEmailAndPassword(
+      await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      return true;
     } catch (e) {
       throw AuthException.from(e, method: 'Credentials');
     }
-    return credential;
   }
 
   @override
-  Future<UserCredential?> signInWithGoogle({String? clientId}) async {
+  Future<bool> signInWithGoogle({String? clientId}) async {
     try {
       await removeUserIfAnonymous();
 
       final GoogleSignInAccount? user =
           await GoogleSignIn(clientId: clientId).signIn();
 
-      if (user != null) {
-        final GoogleSignInAuthentication googleAuth = await user.authentication;
-        final oAuthCredential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-        return await _firebaseAuth.signInWithCredential(oAuthCredential);
+      if (user == null) {
+        return false;
       }
+
+      final GoogleSignInAuthentication googleAuth = await user.authentication;
+      final oAuthCredential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await _firebaseAuth.signInWithCredential(oAuthCredential);
+      return true;
     } on FirebaseAuthException catch (e) {
       throw AuthException.from(e, method: 'Google');
     } on PlatformException catch (_) {
       throw AuthException(AuthExceptionType.PLATFORM_ERROR);
     } catch (e) {
-      Logger.instance.error(
+      Logger.error(
         module: runtimeType,
         message: 'Unknown exception on sign in with google: $e',
       );
       throw AuthException(AuthExceptionType.UNCLASSIFIED);
     }
-
-    return Future.value(null);
   }
 
   @override
-  Future<UserCredential?> signInWithFacebook() async {
+  Future<bool> signInWithFacebook() async {
     if (kIsWeb) {
       var provider = FacebookAuthProvider();
       provider.addScope('email');
@@ -117,31 +133,34 @@ class FirebaseAuthService extends AuthService {
 
       try {
         await removeUserIfAnonymous();
-        return FirebaseAuth.instance.signInWithPopup(provider);
+        await FirebaseAuth.instance.signInWithPopup(provider);
       } catch (e) {
         throw AuthException.from(e, method: 'Facebook');
       }
     } else {
       final LoginResult loginResult = await FacebookAuth.instance.login();
 
-      if (loginResult.accessToken != null) {
-        try {
-          await removeUserIfAnonymous();
-
-          final OAuthCredential oAuthCredential =
-              FacebookAuthProvider.credential(loginResult.accessToken!.token);
-          return await _firebaseAuth.signInWithCredential(oAuthCredential);
-        } catch (e) {
-          throw AuthException.from(e, method: 'Facebook');
-        }
+      if (loginResult.accessToken == null) {
+        return false;
       }
 
-      return Future.value(null);
+      try {
+        await removeUserIfAnonymous();
+
+        final OAuthCredential oAuthCredential =
+            FacebookAuthProvider.credential(loginResult.accessToken!.token);
+
+        await _firebaseAuth.signInWithCredential(oAuthCredential);
+      } catch (e) {
+        throw AuthException.from(e, method: 'Facebook');
+      }
     }
+
+    return true;
   }
 
   @override
-  Future<UserCredential> signInWithApple() async {
+  Future<bool> signInWithApple() async {
     // When signing in, the nonce in the id token returned by Apple is expected
     // to match the sha256 hash of `rawNonce`.
     final rawNonce = _generateNonce();
@@ -163,17 +182,19 @@ class FirebaseAuthService extends AuthService {
         rawNonce: rawNonce,
       );
 
-      return await _firebaseAuth.signInWithCredential(oAuthCredential);
+      await _firebaseAuth.signInWithCredential(oAuthCredential);
     } catch (e) {
-      throw AuthException.from(e, method: 'Facebook');
+      throw AuthException.from(e, method: 'Apple');
     }
+
+    return true;
   }
 
   @override
   Future<void> logout({bool removeAnonymous = true}) async {
     // try to rotate firebase cloud messaging token
     try {} catch (err) {
-      Logger.instance.warning(
+      Logger.warning(
         module: runtimeType,
         message: 'Failed to rotate fcm key: $err',
       );
@@ -185,7 +206,7 @@ class FirebaseAuthService extends AuthService {
     }
 
     // sign out
-    if (currentUser != null) {
+    if (_firebaseAuth.currentUser != null) {
       await _firebaseAuth.signOut();
     }
   }
@@ -209,7 +230,7 @@ class FirebaseAuthService extends AuthService {
 
   @override
   bool get isVerified {
-    var user = currentUser;
+    var user = _firebaseAuth.currentUser;
 
     if (user == null) {
       return false;
@@ -227,14 +248,12 @@ class FirebaseAuthService extends AuthService {
   }
 
   @override
-  Future<void> sendEmailVerification() async {
-    return _firebaseAuth.currentUser?.sendEmailVerification();
-  }
+  Future<void>? sendEmailVerification() =>
+      _firebaseAuth.currentUser?.sendEmailVerification();
 
   @override
-  Future<void> sendResetPassword(String email) {
-    return _firebaseAuth.sendPasswordResetEmail(email: email);
-  }
+  Future<void> sendResetPassword(String email) =>
+      _firebaseAuth.sendPasswordResetEmail(email: email);
 
   @override
   Future<void> changePassword(String password) {
@@ -251,11 +270,11 @@ class FirebaseAuthService extends AuthService {
   }
 
   @override
-  bool get signedIn => currentUser != null;
+  bool get signedIn => _firebaseAuth.currentUser != null;
 
   @override
   Future<String?> getImageUrl({int size = 128}) async {
-    String? url = currentUser?.photoURL;
+    String? url = _firebaseAuth.currentUser?.photoURL;
 
     if (url == null) {
       return null;
@@ -278,5 +297,11 @@ class FirebaseAuthService extends AuthService {
     if (user?.isAnonymous ?? false) {
       return await _firebaseAuth.currentUser?.delete();
     }
+  }
+
+  @override
+  Future<AuthData?> reloadAuthorization() async {
+    await _firebaseAuth.currentUser?.reload();
+    return currentUser;
   }
 }

@@ -1,20 +1,28 @@
-import 'package:firebase_auth/firebase_auth.dart';
+abstract class AuthData {
+  const AuthData();
+
+  String get uid;
+  String? get name;
+  String? get email;
+  bool get emailVerified;
+}
 
 abstract class AuthService {
-  Future<UserCredential> signup(String email, String password);
-  Future<UserCredential> signInAnonymously();
-  Future<UserCredential> signInWithCredentials(String email, String password);
-  Future<UserCredential?> signInWithGoogle({String? clientId});
-  Future<UserCredential?> signInWithFacebook();
-  Future<UserCredential?> signInWithApple();
-  Future<void> sendEmailVerification();
+  Future<bool> signup(String email, String password);
+  Future<bool> signInAnonymously();
+  Future<bool> signInWithCredentials(String email, String password);
+  Future<bool> signInWithGoogle({String? clientId});
+  Future<bool> signInWithFacebook();
+  Future<bool> signInWithApple();
+  Future<void>? sendEmailVerification();
   Future<void> sendResetPassword(String email);
   Future<void> changeMail(String mail);
   Future<void> changePassword(String password);
   Future<String?> getImageUrl({int size});
+  Future<AuthData?> reloadAuthorization();
 
-  Future logout();
-  User? get currentUser;
+  Future<void> logout();
+  AuthData? get currentUser;
   bool get signedIn;
   bool get isVerified;
 }

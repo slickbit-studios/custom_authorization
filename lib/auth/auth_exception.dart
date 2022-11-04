@@ -1,4 +1,4 @@
-import 'package:custom_services/util/logger.dart';
+import 'package:custom_services/services/crash_report/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
@@ -45,7 +45,7 @@ class AuthException {
       } else if (err.code == 'requires-recent-login') {
         return AuthException(AuthExceptionType.RECENT_LOGIN_REQUIRED);
       } else {
-        Logger.instance.error(
+        Logger.error(
           module: AuthException,
           message: 'Unhandled code on signin with $method: ${err.code}',
         );
@@ -55,7 +55,7 @@ class AuthException {
     } else if (err is SignInWithAppleAuthorizationException) {
       return AuthException(AuthExceptionType.NOT_COMPLETED);
     } else {
-      Logger.instance.error(
+      Logger.error(
         module: AuthException,
         message: 'Unexpected error on signin with $method: $err',
       );

@@ -19,11 +19,11 @@ dependencies:
       ref: master
 
   firebase_core: ^2.1.1
+  firebase_auth: ^4.1.1
   google_sign_in: ^5.4.2
   flutter_facebook_auth: ^5.0.1
   crypto: ^3.0.2
-  sign_in_with_apple: ^4.1.0
-  firebase_auth: ^4.1.0
+  sign_in_with_apple: ^4.2.0
 
 dev_dependencies:
   flutter_test:

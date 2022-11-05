@@ -18,8 +18,8 @@ dependencies:
       url: git@github.com:danihoo/custom_services.git
       ref: master
 
-  firebase_core: ^2.1.1
-  firebase_auth: ^4.1.1
+  firebase_core: ^1.24.0
+  firebase_auth: ^3.11.2
   google_sign_in: ^5.4.2
   flutter_facebook_auth: ^5.0.1
   crypto: ^3.0.2

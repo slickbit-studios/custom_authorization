@@ -16,7 +16,7 @@ dependencies:
   custom_services:
     git:
       url: git@github.com:danihoo/custom_services.git
-      ref: 040e1df69644a696ebed33a989ce5913ee7903e3
+      ref: master
 
   firebase_core: ^2.1.1
   firebase_auth: ^4.1.1

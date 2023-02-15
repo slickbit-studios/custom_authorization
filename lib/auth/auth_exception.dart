@@ -13,7 +13,8 @@ enum AuthExceptionType {
   NOT_COMPLETED,
   TOO_MANY_REQUESTS,
   INVALID_CREDENTIAL,
-  RECENT_LOGIN_REQUIRED
+  RECENT_LOGIN_REQUIRED,
+  REQUEST_ERROR
 }
 
 class AuthException {
@@ -44,6 +45,8 @@ class AuthException {
         return AuthException(AuthExceptionType.NOT_COMPLETED);
       } else if (err.code == 'requires-recent-login') {
         return AuthException(AuthExceptionType.RECENT_LOGIN_REQUIRED);
+      } else if (err.code == 'network-request-failed') {
+        return AuthException(AuthExceptionType.REQUEST_ERROR);
       } else {
         Logger.error(
           module: AuthException,

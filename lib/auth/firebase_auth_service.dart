@@ -81,16 +81,29 @@ class FirebaseAuthService extends AuthService {
 
   @override
   Future<bool> signInWithCredentials(String email, String password) async {
+    var credential = EmailAuthProvider.credential(
+      email: email,
+      password: password,
+    );
+
     try {
-      var credential = EmailAuthProvider.credential(
-        email: email,
-        password: password,
-      );
       await _signInWithCredential(credential);
 
       return true;
     } catch (e) {
-      throw AuthException.from(e, method: 'Credentials');
+      var exception = AuthException.from(e, method: 'Credentials');
+
+      if (exception.type == AuthExceptionType.EMAIL_IN_USE) {
+        try {
+          await _firebaseAuth.signInWithCredential(credential);
+          return true;
+        } on FirebaseAuthException catch (e) {
+          throw AuthException.from(e, method: 'Credentials');
+        }
+      } else {
+        throw exception;
+      }
+
     }
   }
 

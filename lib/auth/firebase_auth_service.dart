@@ -64,14 +64,18 @@ class FirebaseAuthService extends AuthService {
   }
 
   @override
-  Future<bool> signup(String email, String password) async {
+  Future<bool> signup(
+    String email,
+    String password, {
+    bool forceSignin = true,
+  }) async {
     try {
       var credential = EmailAuthProvider.credential(
         email: email,
         password: password,
       );
-      var userCredentials = await _signInWithCredential(credential);
-      userCredentials.user!.sendEmailVerification();
+      var uc = await _signInWithCredential(credential, forceSignin);
+      uc.user!.sendEmailVerification();
     } catch (e) {
       throw AuthException.from(e);
     }
@@ -80,14 +84,18 @@ class FirebaseAuthService extends AuthService {
   }
 
   @override
-  Future<bool> signInWithCredentials(String email, String password) async {
+  Future<bool> signInWithCredentials(
+    String email,
+    String password, {
+    bool forceSignin = true,
+  }) async {
     var credential = EmailAuthProvider.credential(
       email: email,
       password: password,
     );
 
     try {
-      await _signInWithCredential(credential);
+      await _signInWithCredential(credential, forceSignin);
 
       return true;
     } catch (e) {
@@ -96,7 +104,10 @@ class FirebaseAuthService extends AuthService {
   }
 
   @override
-  Future<bool> signInWithGoogle({String? clientId}) async {
+  Future<bool> signInWithGoogle({
+    String? clientId,
+    bool forceSignin = true,
+  }) async {
     try {
       final GoogleSignInAccount? user =
           await GoogleSignIn(clientId: clientId).signIn();
@@ -111,7 +122,7 @@ class FirebaseAuthService extends AuthService {
         idToken: googleAuth.idToken,
       );
 
-      await _signInWithCredential(oAuthCredential);
+      await _signInWithCredential(oAuthCredential, forceSignin);
       return true;
     } on FirebaseAuthException catch (e) {
       throw AuthException.from(e, method: 'Google');
@@ -127,7 +138,7 @@ class FirebaseAuthService extends AuthService {
   }
 
   @override
-  Future<bool> signInWithFacebook() async {
+  Future<bool> signInWithFacebook({bool forceSignin = true}) async {
     if (kIsWeb) {
       var provider = FacebookAuthProvider();
       provider.addScope('email');
@@ -149,7 +160,7 @@ class FirebaseAuthService extends AuthService {
         final OAuthCredential oAuthCredential =
             FacebookAuthProvider.credential(loginResult.accessToken!.token);
 
-        await _signInWithCredential(oAuthCredential);
+        await _signInWithCredential(oAuthCredential, forceSignin);
       } catch (e) {
         throw AuthException.from(e, method: 'Facebook');
       }
@@ -159,7 +170,7 @@ class FirebaseAuthService extends AuthService {
   }
 
   @override
-  Future<bool> signInWithApple() async {
+  Future<bool> signInWithApple({bool forceSignin = true}) async {
     // When signing in, the nonce in the id token returned by Apple is expected
     // to match the sha256 hash of `rawNonce`.
     final rawNonce = _generateNonce();
@@ -179,7 +190,7 @@ class FirebaseAuthService extends AuthService {
         rawNonce: rawNonce,
       );
 
-      await _signInWithCredential(oAuthCredential);
+      await _signInWithCredential(oAuthCredential, forceSignin);
     } catch (e) {
       throw AuthException.from(e, method: 'Apple');
     }
@@ -298,17 +309,21 @@ class FirebaseAuthService extends AuthService {
     return currentUser;
   }
 
-  Future<UserCredential> _signInWithCredential(AuthCredential c) async {
+  Future<UserCredential> _signInWithCredential(
+    AuthCredential c,
+    bool forceSignin, // force sign in if old anonymous account is lost
+  ) async {
     var oldUser = _firebaseAuth.currentUser;
     if (oldUser?.isAnonymous ?? false) {
       try {
         return await oldUser!.linkWithCredential(c);
       } catch (e) {
         // Skip to normal signin, if account already exists, otherwise rethrow
-        if (![
-          AuthExceptionType.EMAIL_IN_USE,
-          AuthExceptionType.CREDENTIAL_IN_USE,
-        ].contains(AuthException.from(e).type)) {
+        if (!forceSignin ||
+            ![
+              AuthExceptionType.EMAIL_IN_USE,
+              AuthExceptionType.CREDENTIAL_IN_USE,
+            ].contains(AuthException.from(e).type)) {
           rethrow;
         }
       }

@@ -54,24 +54,6 @@ class FirebaseAuthService extends AuthService {
       : FirebaseAuthData._(_firebaseAuth.currentUser!);
 
   @override
-  Future<bool> signup(String email, String password) async {
-    await removeUserIfAnonymous();
-
-    UserCredential? credentials;
-    try {
-      credentials = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      credentials.user!.sendEmailVerification();
-    } catch (e) {
-      throw AuthException.from(e);
-    }
-
-    return true;
-  }
-
-  @override
   Future<bool> signInAnonymously() async {
     try {
       await _firebaseAuth.signInAnonymously();
@@ -82,14 +64,29 @@ class FirebaseAuthService extends AuthService {
   }
 
   @override
-  Future<bool> signInWithCredentials(String email, String password) async {
+  Future<bool> signup(String email, String password) async {
     try {
-      await removeUserIfAnonymous();
-
-      await _firebaseAuth.signInWithEmailAndPassword(
+      var credential = EmailAuthProvider.credential(
         email: email,
         password: password,
       );
+      var userCredentials = await _signInWithCredential(credential);
+      userCredentials.user!.sendEmailVerification();
+    } catch (e) {
+      throw AuthException.from(e);
+    }
+
+    return true;
+  }
+
+  @override
+  Future<bool> signInWithCredentials(String email, String password) async {
+    try {
+      var credential = EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      await _signInWithCredential(credential);
 
       return true;
     } catch (e) {
@@ -100,8 +97,6 @@ class FirebaseAuthService extends AuthService {
   @override
   Future<bool> signInWithGoogle({String? clientId}) async {
     try {
-      await removeUserIfAnonymous();
-
       final GoogleSignInAccount? user =
           await GoogleSignIn(clientId: clientId).signIn();
 
@@ -115,7 +110,7 @@ class FirebaseAuthService extends AuthService {
         idToken: googleAuth.idToken,
       );
 
-      await _firebaseAuth.signInWithCredential(oAuthCredential);
+      await _signInWithCredential(oAuthCredential);
       return true;
     } on FirebaseAuthException catch (e) {
       throw AuthException.from(e, method: 'Google');
@@ -138,8 +133,7 @@ class FirebaseAuthService extends AuthService {
       provider.setCustomParameters({'display': 'popup'});
 
       try {
-        await removeUserIfAnonymous();
-        await FirebaseAuth.instance.signInWithPopup(provider);
+        await _signInWithProvider(provider);
       } catch (e) {
         throw AuthException.from(e, method: 'Facebook');
       }
@@ -151,12 +145,10 @@ class FirebaseAuthService extends AuthService {
       }
 
       try {
-        await removeUserIfAnonymous();
-
         final OAuthCredential oAuthCredential =
             FacebookAuthProvider.credential(loginResult.accessToken!.token);
 
-        await _firebaseAuth.signInWithCredential(oAuthCredential);
+        await _signInWithCredential(oAuthCredential);
       } catch (e) {
         throw AuthException.from(e, method: 'Facebook');
       }
@@ -173,8 +165,6 @@ class FirebaseAuthService extends AuthService {
     final nonce = _sha256ofString(rawNonce);
 
     try {
-      await removeUserIfAnonymous();
-
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
@@ -188,7 +178,7 @@ class FirebaseAuthService extends AuthService {
         rawNonce: rawNonce,
       );
 
-      await _firebaseAuth.signInWithCredential(oAuthCredential);
+      await _signInWithCredential(oAuthCredential);
     } catch (e) {
       throw AuthException.from(e, method: 'Apple');
     }
@@ -208,7 +198,10 @@ class FirebaseAuthService extends AuthService {
 
     // delete anonymous account in firebase
     if (removeAnonymous) {
-      await removeUserIfAnonymous();
+      var user = _firebaseAuth.currentUser;
+      if (user?.isAnonymous ?? false) {
+        return await _firebaseAuth.currentUser?.delete();
+      }
     }
 
     // sign out
@@ -298,16 +291,27 @@ class FirebaseAuthService extends AuthService {
     return url;
   }
 
-  Future<void> removeUserIfAnonymous() async {
-    var user = _firebaseAuth.currentUser;
-    if (user?.isAnonymous ?? false) {
-      return await _firebaseAuth.currentUser?.delete();
-    }
-  }
-
   @override
   Future<AuthData?> reloadAuthorization() async {
     await _firebaseAuth.currentUser?.reload();
     return currentUser;
+  }
+
+  Future<UserCredential> _signInWithCredential(AuthCredential credential) {
+    var oldUser = _firebaseAuth.currentUser;
+    if (oldUser?.isAnonymous ?? false) {
+      return oldUser!.linkWithCredential(credential);
+    } else {
+      return _firebaseAuth.signInWithCredential(credential);
+    }
+  }
+
+  Future<void> _signInWithProvider(FacebookAuthProvider provider) async {
+    var oldUser = _firebaseAuth.currentUser;
+    if (oldUser?.isAnonymous ?? false) {
+      await oldUser?.linkWithProvider(provider);
+    } else {
+      await _firebaseAuth.signInWithProvider(provider);
+    }
   }
 }

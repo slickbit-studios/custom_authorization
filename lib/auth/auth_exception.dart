@@ -6,6 +6,7 @@ enum AuthExceptionType {
   UNCLASSIFIED,
   WEAK_PASSWORD,
   EMAIL_IN_USE,
+  CREDENTIAL_IN_USE,
   USER_NOT_EXISTS,
   PASSWORD_WRONG,
   ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL,
@@ -29,6 +30,8 @@ class AuthException {
         return AuthException(AuthExceptionType.WEAK_PASSWORD);
       } else if (err.code == 'email-already-in-use') {
         return AuthException(AuthExceptionType.EMAIL_IN_USE);
+      } else if (err.code == 'credential-already-in-use') {
+        return AuthException(AuthExceptionType.CREDENTIAL_IN_USE);
       } else if (err.code == 'user-not-found') {
         return AuthException(AuthExceptionType.USER_NOT_EXISTS);
       } else if (err.code == 'wrong-password') {

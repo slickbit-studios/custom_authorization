@@ -91,19 +91,7 @@ class FirebaseAuthService extends AuthService {
 
       return true;
     } catch (e) {
-      var exception = AuthException.from(e, method: 'Credentials');
-
-      if (exception.type == AuthExceptionType.EMAIL_IN_USE) {
-        try {
-          await _firebaseAuth.signInWithCredential(credential);
-          return true;
-        } on FirebaseAuthException catch (e) {
-          throw AuthException.from(e, method: 'Credentials');
-        }
-      } else {
-        throw exception;
-      }
-
+      throw AuthException.from(e, method: 'Credentials');
     }
   }
 
@@ -310,13 +298,25 @@ class FirebaseAuthService extends AuthService {
     return currentUser;
   }
 
-  Future<UserCredential> _signInWithCredential(AuthCredential credential) {
+  Future<UserCredential> _signInWithCredential(AuthCredential c) async {
     var oldUser = _firebaseAuth.currentUser;
     if (oldUser?.isAnonymous ?? false) {
-      return oldUser!.linkWithCredential(credential);
-    } else {
-      return _firebaseAuth.signInWithCredential(credential);
+      try {
+        return await oldUser!.linkWithCredential(c);
+      } catch (e) {
+        var exception = AuthException.from(e, method: 'Credentials');
+
+        // Skip to normal signin, if account already exists, otherwise rethrow
+        if (![
+          AuthExceptionType.EMAIL_IN_USE,
+          AuthExceptionType.CREDENTIAL_IN_USE,
+        ].contains(exception.type)) {
+          rethrow;
+        }
+      }
     }
+
+    return _firebaseAuth.signInWithCredential(c);
   }
 
   Future<void> _signInWithProvider(FacebookAuthProvider provider) async {

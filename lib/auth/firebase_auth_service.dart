@@ -304,13 +304,11 @@ class FirebaseAuthService extends AuthService {
       try {
         return await oldUser!.linkWithCredential(c);
       } catch (e) {
-        var exception = AuthException.from(e, method: 'Credentials');
-
         // Skip to normal signin, if account already exists, otherwise rethrow
         if (![
           AuthExceptionType.EMAIL_IN_USE,
           AuthExceptionType.CREDENTIAL_IN_USE,
-        ].contains(exception.type)) {
+        ].contains(AuthException.from(e).type)) {
           rethrow;
         }
       }

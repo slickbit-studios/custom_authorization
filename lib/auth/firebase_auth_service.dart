@@ -70,11 +70,7 @@ class FirebaseAuthService extends AuthService {
     bool forceSignin = true,
   }) async {
     try {
-      var credential = EmailAuthProvider.credential(
-        email: email,
-        password: password,
-      );
-      var uc = await _signInWithCredential(credential, forceSignin);
+      var uc = await _signupWithMailAndPassword(email, password, forceSignin);
       uc.user!.sendEmailVerification();
     } catch (e) {
       throw AuthException.from(e);
@@ -330,6 +326,37 @@ class FirebaseAuthService extends AuthService {
     }
 
     return _firebaseAuth.signInWithCredential(c);
+  }
+
+  Future<UserCredential> _signupWithMailAndPassword(
+      String email,
+      String password,
+      bool forceSignin // force sign in if old anonymous account is lost
+      ) async {
+    var oldUser = _firebaseAuth.currentUser;
+    if (oldUser?.isAnonymous ?? false) {
+      var c = EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      try {
+        return await oldUser!.linkWithCredential(c);
+      } catch (e) {
+        // Skip to normal signin, if account already exists, otherwise rethrow
+        if (!forceSignin ||
+            ![
+              AuthExceptionType.EMAIL_IN_USE,
+              AuthExceptionType.CREDENTIAL_IN_USE,
+            ].contains(AuthException.from(e).type)) {
+          rethrow;
+        }
+      }
+    }
+
+    return _firebaseAuth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
   Future<void> _signInWithProvider(FacebookAuthProvider provider) async {

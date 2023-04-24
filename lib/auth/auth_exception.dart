@@ -51,7 +51,7 @@ class AuthException {
       } else if (err.code == 'network-request-failed') {
         return AuthException(AuthExceptionType.REQUEST_ERROR);
       } else {
-        Logger.error(
+        ServiceLogger.instance.error(
           module: AuthException,
           message: 'Unhandled code on signin with $method: ${err.code}',
         );
@@ -61,7 +61,7 @@ class AuthException {
     } else if (err is SignInWithAppleAuthorizationException) {
       return AuthException(AuthExceptionType.NOT_COMPLETED);
     } else {
-      Logger.error(
+      ServiceLogger.instance.error(
         module: AuthException,
         message: 'Unexpected error on signin with $method: $err',
       );

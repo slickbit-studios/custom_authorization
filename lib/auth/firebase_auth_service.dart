@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:custom_services/services/crash_report/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_cloud_messaging/firebase_cloud_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
@@ -125,7 +126,7 @@ class FirebaseAuthService extends AuthService {
     } on PlatformException catch (_) {
       throw AuthException(AuthExceptionType.PLATFORM_ERROR);
     } catch (e) {
-      Logger.error(
+      ServiceLogger.instance.error(
         module: runtimeType,
         message: 'Unknown exception on sign in with google: $e',
       );
@@ -197,8 +198,10 @@ class FirebaseAuthService extends AuthService {
   @override
   Future<void> logout({bool removeAnonymous = true}) async {
     // try to rotate firebase cloud messaging token
-    try {} catch (err) {
-      Logger.warning(
+    try {
+      FirebaseMessaging().deleteInstanceID();
+    } catch (err) {
+      ServiceLogger.instance.warning(
         module: runtimeType,
         message: 'Failed to rotate fcm key: $err',
       );

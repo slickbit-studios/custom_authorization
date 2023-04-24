@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:custom_services/services/crash_report/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_cloud_messaging/firebase_cloud_messaging.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
@@ -199,7 +199,7 @@ class FirebaseAuthService extends AuthService {
   Future<void> logout({bool removeAnonymous = true}) async {
     // try to rotate firebase cloud messaging token
     try {
-      FirebaseMessaging().deleteInstanceID();
+      FirebaseMessaging.instance.deleteToken();
     } catch (err) {
       ServiceLogger.instance.warning(
         module: runtimeType,

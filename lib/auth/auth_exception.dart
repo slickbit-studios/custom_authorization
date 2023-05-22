@@ -9,7 +9,7 @@ enum AuthExceptionType {
   CREDENTIAL_IN_USE,
   USER_NOT_EXISTS,
   PASSWORD_WRONG,
-  ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL,
+  ACC_EXISTS_WITH_OTHER_CRED,
   PLATFORM_ERROR,
   NOT_COMPLETED,
   TOO_MANY_REQUESTS,
@@ -26,37 +26,36 @@ class AuthException {
 
   static AuthException from(Object err, {String method = ''}) {
     if (err is FirebaseAuthException) {
-      if (err.code == 'weak-password') {
-        return AuthException(AuthExceptionType.WEAK_PASSWORD);
-      } else if (err.code == 'email-already-in-use') {
-        return AuthException(AuthExceptionType.EMAIL_IN_USE);
-      } else if (err.code == 'credential-already-in-use') {
-        return AuthException(AuthExceptionType.CREDENTIAL_IN_USE);
-      } else if (err.code == 'user-not-found') {
-        return AuthException(AuthExceptionType.USER_NOT_EXISTS);
-      } else if (err.code == 'wrong-password') {
-        return AuthException(AuthExceptionType.PASSWORD_WRONG);
-      } else if (err.code == 'too-many-requests') {
-        return AuthException(AuthExceptionType.TOO_MANY_REQUESTS);
-      } else if (err.code == 'account-exists-with-different-credential') {
-        return AuthException(
-          AuthExceptionType.ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL,
-        );
-      } else if (err.code == 'invalid-credential') {
-        return AuthException(AuthExceptionType.INVALID_CREDENTIAL);
-      } else if (err.code == 'popup-closed-by-user') {
-        return AuthException(AuthExceptionType.NOT_COMPLETED);
-      } else if (err.code == 'requires-recent-login') {
-        return AuthException(AuthExceptionType.RECENT_LOGIN_REQUIRED);
-      } else if (err.code == 'network-request-failed') {
-        return AuthException(AuthExceptionType.REQUEST_ERROR);
-      } else {
-        ServiceLogger.instance.error(
-          module: AuthException,
-          message: 'Unhandled code on signin with $method: ${err.code}',
-        );
+      switch (_code(err)) {
+        case 'weak-password':
+          return AuthException(AuthExceptionType.WEAK_PASSWORD);
+        case 'email-already-in-use':
+          return AuthException(AuthExceptionType.EMAIL_IN_USE);
+        case 'credential-already-in-use':
+          return AuthException(AuthExceptionType.CREDENTIAL_IN_USE);
+        case 'user-not-found':
+          return AuthException(AuthExceptionType.USER_NOT_EXISTS);
+        case 'wrong-password':
+          return AuthException(AuthExceptionType.PASSWORD_WRONG);
+        case 'too-many-requests':
+          return AuthException(AuthExceptionType.TOO_MANY_REQUESTS);
+        case 'account-exists-with-different-credential':
+          return AuthException(AuthExceptionType.ACC_EXISTS_WITH_OTHER_CRED);
+        case 'invalid-credential':
+          return AuthException(AuthExceptionType.INVALID_CREDENTIAL);
+        case 'popup-closed-by-user':
+          return AuthException(AuthExceptionType.NOT_COMPLETED);
+        case 'requires-recent-login':
+          return AuthException(AuthExceptionType.RECENT_LOGIN_REQUIRED);
+        case 'network-request-failed':
+          return AuthException(AuthExceptionType.REQUEST_ERROR);
+        default:
+          ServiceLogger.instance.error(
+            module: AuthException,
+            message: 'Unhandled code on signin with $method: ${err.code}',
+          );
 
-        return AuthException(AuthExceptionType.UNCLASSIFIED, error: err);
+          return AuthException(AuthExceptionType.UNCLASSIFIED, error: err);
       }
     } else if (err is SignInWithAppleAuthorizationException) {
       return AuthException(AuthExceptionType.NOT_COMPLETED);
@@ -77,5 +76,19 @@ class AuthException {
       result += ': $error';
     }
     return result;
+  }
+
+  static String _code(FirebaseAuthException err) {
+    if (err.code == 'unknown') {
+      //  In web the messages are delivered like the following with code unknown
+
+      var regex = RegExp('.*\\(auth\\/|\\).\$');
+      var code = err.message?.replaceAll(regex, '') ?? '';
+      if (code.isNotEmpty) {
+        return code;
+      }
+    }
+
+    return err.code;
   }
 }

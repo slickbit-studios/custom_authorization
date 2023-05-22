@@ -80,8 +80,10 @@ class AuthException {
 
   static String _code(FirebaseAuthException err) {
     if (err.code == 'unknown') {
-      //  In web the messages are delivered like the following with code unknown
-
+      //  In web the code is delivered as unknown but real code is in message
+      //  e.g.:
+      //  An unknown error occurred: FirebaseError: Firebase: The email address
+      //  is already in use by another account. (auth/email-already-in-use).
       var regex = RegExp('.*\\(auth\\/|\\).\$');
       var code = err.message?.replaceAll(regex, '') ?? '';
       if (code.isNotEmpty) {

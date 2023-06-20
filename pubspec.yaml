@@ -15,15 +15,15 @@ dependencies:
 
   custom_services:
     git:
-      url: git@github.com:danihoo/custom_services.git
+      url: git@github.com:slickbit-studios/custom_services.git
       ref: master
 
-  firebase_core: ^2.13.1
-  firebase_auth: ^4.6.2
-  google_sign_in: ^6.1.3
-  flutter_facebook_auth: ^5.0.11
+  firebase_core: ^2.14.0
+  firebase_auth: ^4.6.3
+  google_sign_in: ^6.1.4
+  flutter_facebook_auth: ^6.0.0
   crypto: ^3.0.3
-  sign_in_with_apple: ^4.3.0
+  sign_in_with_apple: ^5.0.0
 
 dev_dependencies:
   flutter_test:

@@ -5,7 +5,7 @@ abstract class AuthData {
   String? get name;
   String? get email;
   bool get emailVerified;
-  Future<String> get token;
+  Future<String?> get token;
   bool get anonymous;
 }
 

@@ -38,7 +38,7 @@ class FirebaseAuthData extends AuthData {
   String get uid => _firebaseUser.uid;
 
   @override
-  Future<String> get token => _firebaseUser.getIdToken();
+  Future<String?> get token => _firebaseUser.getIdToken();
 
   @override
   bool get anonymous => _firebaseUser.isAnonymous;

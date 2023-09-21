@@ -78,8 +78,8 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "8365b49d439ea06c5df2d1c0eee0c3076013c1af"
-      url: "git@github.com:slickbit-studios/custom_services.git"
+      resolved-ref: "6080660bd1c99ba3b90a45819cd73a9627fa8443"
+      url: "https://github.com/slickbit-studios/custom_services.git"
     source: git
     version: "0.0.1"
   facebook_auth_desktop:

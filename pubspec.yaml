@@ -18,13 +18,13 @@ dependencies:
       url: https://github.com/slickbit-studios/custom_services.git
       ref: master
 
-  firebase_core: ^2.14.0
-  firebase_auth: ^4.6.3
+  firebase_core: ^2.16.0
+  firebase_auth: ^4.10.0
   firebase_messaging: ">=14.0.0 <15.0.0"
   google_sign_in: ^6.1.4
-  flutter_facebook_auth: ^6.0.0
+  flutter_facebook_auth: ^6.0.2
   crypto: ^3.0.3
-  sign_in_with_apple: ^4.3.0
+  sign_in_with_apple: ^5.0.0
 
 dev_dependencies:
   flutter_test:

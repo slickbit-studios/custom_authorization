@@ -154,8 +154,8 @@ class FirebaseAuthService extends AuthService {
       }
 
       try {
-        final OAuthCredential oAuthCredential =
-            FacebookAuthProvider.credential(loginResult.accessToken!.token);
+        final OAuthCredential oAuthCredential = FacebookAuthProvider.credential(
+            loginResult.accessToken!.tokenString);
 
         await _signInWithCredential(oAuthCredential, forceSignin);
       } catch (e) {
@@ -296,7 +296,7 @@ class FirebaseAuthService extends AuthService {
     // facebook requires access token in url
     var facebookToken = await FacebookAuth.instance.accessToken;
     if (facebookToken != null) {
-      url += "&access_token=${facebookToken.token}";
+      url += "&access_token=${facebookToken.tokenString}";
     }
 
     return url;
